@@ -5,6 +5,7 @@ from datetime import datetime
 from requests import get
 from re import match
 import sys
+import json
 
 
 def is_date_valid(date):
@@ -61,6 +62,8 @@ def is_args_empty(args):
 if is_args_empty(args):
     print(asctime(datetime.now().timetuple()))
 else:
+    data = json.loads(open("./data.json").read())
+
     endpoint = "http://api.timezonedb.com/v2.1/convert-time-zone?"
     api_key = args.api_key
 
@@ -71,6 +74,15 @@ else:
     from_timezone = args.__dict__["from"]
 
     to_timezone = args.to
+
+    from_timezone_abbr = ""
+    to_timezone_abbr = ""
+
+    for timezone in data:
+        if from_timezone == timezone["time_zone"]:
+            from_timezone_abbr = timezone["abbreviation"]
+        if to_timezone == timezone["time_zone"]:
+            to_timezone_abbr = timezone["abbreviation"]
 
     unix_time = timegm(
         datetime(int(date_list[0]), int(date_list[1]), int(date_list[2]),
@@ -86,4 +98,7 @@ else:
             "time": str(unix_time)
         }).json()
 
-    print(asctime(gmtime(response["toTimestamp"])))
+    print(asctime(gmtime(unix_time)) + " " + "{}".format(from_timezone_abbr))
+    print(
+        asctime(gmtime(response["toTimestamp"])) + " " +
+        "{}".format(to_timezone_abbr))
